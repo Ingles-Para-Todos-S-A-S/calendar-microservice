@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Services\CalendarService;
 use Illuminate\Http\Request;
+use App\Models\ApiResponse;
+
 
 class CalendarController extends Controller {
 
@@ -11,12 +13,12 @@ class CalendarController extends Controller {
         return CalendarService::getCalendarId($idcalendar);
     }
 
-    function getEventCalendarAllEvent() {
-        return CalendarService::getAllEvent();
-    }
-
-    function addEventCalendarDyDayTime() {
-        return CalendarService::addEventByDayTime();
+    public function getEventCalendarByDate(Request $request) {
+        if(isset($request->params)) {
+            return CalendarService::getEventByDay(new Request($request->params));
+        }else {
+            return ApiResponse::response(3, null);
+        }
     }
 
     function addEventCalendarAllDay() {

@@ -76,7 +76,7 @@ class Event
         return $event->quickSave($text);
     }
 
-    public static function get2(string $calendarId): Collection
+    public static function getEventByIdCalendar(string $calendarId): Collection
     {
         $googleCalendar = GoogleCalendarFactory::createForCalendarId($calendarId);
 
@@ -88,6 +88,39 @@ class Event
             $queryParameters['pageToken'] = $googleEvents->getNextPageToken();
 
             $googleEvents = $googleCalendar->listEvents(null, null, []);
+
+            $googleEventsList = array_merge($googleEventsList, $googleEvents->getItems());
+        }
+
+        $useUserOrder = isset($queryParameters['orderBy']);
+
+        return collect($googleEventsList)
+            ->map(function (Google_Service_Calendar_Event $event) use ($calendarId) {
+                return static::createFromGoogleCalendarEvent($event, $calendarId);
+            })
+            ->sortBy(function (self $event, $index) use ($useUserOrder) {
+                if ($useUserOrder) {
+                    return $index;
+                }
+
+                return $event->sortDate;
+            })
+            ->values();
+    }
+
+    public static function getEventByDateTime(CarbonInterface $startDateTime, CarbonInterface $endDateTime, $queryParameters ): Collection
+    {
+        $calendarId = $queryParameters['calendarId'];
+        $googleCalendar = GoogleCalendarFactory::createForCalendarId($calendarId);
+
+        $googleEvents = $googleCalendar->listEvents($startDateTime, $endDateTime, $queryParameters);
+
+        $googleEventsList = $googleEvents->getItems();
+
+        while ($googleEvents->getNextPageToken()) {
+            $queryParameters['pageToken'] = $googleEvents->getNextPageToken();
+
+            $googleEvents = $googleCalendar->listEvents($startDateTime, $endDateTime, $queryParameters);
 
             $googleEventsList = array_merge($googleEventsList, $googleEvents->getItems());
         }

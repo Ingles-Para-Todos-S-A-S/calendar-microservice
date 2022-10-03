@@ -20,12 +20,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('get/event/calendar/idcalendar/{idcalendar}',        [CalendarController::class, 'getEventCalendarByIdCalendar']);
-Route::get('get/event/calendar/all',                            [CalendarController::class, 'getEventCalendarAllEvent']);
-Route::post('post/add/event/calendar/by/daytime',               [CalendarController::class, 'addEventCalendarDyDayTime']);
-Route::get('get/add/event/calendar/all/day',                  [CalendarController::class, 'addEventCalendarAllDay']);
-Route::put('put/update/event/calendar/by/idevent/{idevent}',    [CalendarController::class, 'updateEventCalendarByIdEvent']);
-Route::get('get/delete/event/calendar/by/idevent/{idevent}',    [CalendarController::class, 'deleteEventCalendarByIdEvent']);
+Route::get('get/event/calendar/idcalendar/all/{idcalendar}',          [CalendarController::class, 'getEventCalendarByIdCalendar']);
+Route::get('get/event/calendar/idcalendar/by/datetiem/',            [CalendarController::class, 'getEventCalendarByDate']);
+Route::get('get/event/calendar/all',                                  [CalendarController::class, 'getEventCalendarAllEvent']);
+Route::post('post/add/event/calendar/by/daytime',                     [CalendarController::class, 'addEventCalendarDyDayTime']);
+Route::get('get/add/event/calendar/all/day',                          [CalendarController::class, 'addEventCalendarAllDay']);
+Route::put('put/update/event/calendar/by/idevent/{idevent}',          [CalendarController::class, 'updateEventCalendarByIdEvent']);
+Route::get('get/delete/event/calendar/by/idevent/{idevent}',          [CalendarController::class, 'deleteEventCalendarByIdEvent']);
 
 
 

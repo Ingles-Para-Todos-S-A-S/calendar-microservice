@@ -6,15 +6,25 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Event;
 use Carbon\Carbon;
+use Date;
 
 class CalendarService {
 
     public static function getCalendarId($idcalendar){
-        return Event::get2($idcalendar);
+        return Event::getEventByIdCalendar($idcalendar);
     }
 
-    public static function getAllEvent(){
-        return $events = Event::get('03890b528576b8dd8c1ea873042149496f92272364efa16c3b4a61f226c3fe18@group.calendar.google.com');
+    public static function getEventByDay(Request $request){
+
+        $startTime = Carbon::parse($request->startTime, 'America/Bogota');
+
+        $endTime = Carbon::parse($request->endTime, 'America/Bogota');
+        // $endTime =(clone $startTime)->addHour(4);
+        $queryParameters= [
+            'calendarId'=> $request->idCalendar,
+        ];
+
+        return $events = Event::getEventByDateTime($startTime, $endTime, $queryParameters);
     }
 
     public static function getEventFirst(){
