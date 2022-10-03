@@ -11,7 +11,30 @@ use Date;
 class CalendarService {
 
     public static function getCalendarId($idcalendar){
-        return Event::getEventByIdCalendar($idcalendar);
+        $startTime = Carbon::now();
+
+        $endTime = Carbon::now()->addYear();
+
+        $queryParameters= [
+            'calendarId'=> $idcalendar,
+        ];
+        
+        $events = Event::getEventByIdCalendar($startTime, $endTime, $queryParameters);
+
+        $allEvents[]=[];
+
+        for ($i=0; $i < sizeof($events); $i++) { 
+            $event = [
+                'nameEvent'=> $events[i].googleEvent->summary,
+                'startTime'=> $events[i].googleEvent.start.dateTime->start,
+                'endTime'=> $events[i].googleEvent.end.dateTime->end,
+                'createdBy'=> $events[i].googleEvent->created,
+                'colorEvent'=> $events[i].googleEvent->colorId,
+            ];
+            
+        }
+
+
     }
 
     public static function getEventByDay(Request $request){

@@ -76,11 +76,13 @@ class Event
         return $event->quickSave($text);
     }
 
-    public static function getEventByIdCalendar(string $calendarId): Collection
+    public static function getEventByIdCalendar(CarbonInterface $startDateTime, CarbonInterface $endDateTime, $queryParameters): Collection
     {
+        $calendarId = $queryParameters['calendarId'];
+
         $googleCalendar = GoogleCalendarFactory::createForCalendarId($calendarId);
 
-        $googleEvents = $googleCalendar->listEvents(null, null, []);
+        $googleEvents = $googleCalendar->listEvents($startDateTime, $endDateTime, $queryParameters);
 
         $googleEventsList = $googleEvents->getItems();
 
@@ -111,6 +113,7 @@ class Event
     public static function getEventByDateTime(CarbonInterface $startDateTime, CarbonInterface $endDateTime, $queryParameters ): Collection
     {
         $calendarId = $queryParameters['calendarId'];
+
         $googleCalendar = GoogleCalendarFactory::createForCalendarId($calendarId);
 
         $googleEvents = $googleCalendar->listEvents($startDateTime, $endDateTime, $queryParameters);
