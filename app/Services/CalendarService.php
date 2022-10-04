@@ -19,22 +19,34 @@ class CalendarService {
             'calendarId'=> $idcalendar,
         ];
         
-        $events = Event::getEventByIdCalendar($startTime, $endTime, $queryParameters);
+         $events = Event::getEventByIdCalendar($startTime, $endTime, $queryParameters);
 
-        $allEvents[]=[];
+        $allEvents=[];
 
         for ($i=0; $i < sizeof($events); $i++) { 
+            $startD = $events[$i]->googleEvent->start->date;
+            if ($startD == null) {
+                $start = $events[$i]->googleEvent->start->dateTime;
+                $end = $events[$i]->googleEvent->end->dateTime;
+            }else {
+                $start = $events[$i]->googleEvent->start->date;
+                $end = $events[$i]->googleEvent->end->date;
+            }
+
             $event = [
-                'nameEvent'=> $events[i].googleEvent->summary,
-                'startTime'=> $events[i].googleEvent.start.dateTime->start,
-                'endTime'=> $events[i].googleEvent.end.dateTime->end,
-                'createdBy'=> $events[i].googleEvent->created,
-                'colorEvent'=> $events[i].googleEvent->colorId,
+                'nameCalendar'=> $events[$i]->googleEvent->organizer->displayName,
+                'title'=> $events[$i]->googleEvent->summary,
+                'descriptionEvent'=> $events[$i]->googleEvent->description,
+                'locationEvent'=> $events[$i]->googleEvent->location,
+                'dateCreation'=> $events[$i]->googleEvent->created,
+                'colorEvent'=> $events[$i]->googleEvent->colorId,
+                'start'=> $start,
+                'end'=> $end,
             ];
-            
+            array_push($allEvents, $event);
         }
 
-
+        return $allEvents;
     }
 
     public static function getEventByDay(Request $request){
@@ -42,7 +54,7 @@ class CalendarService {
         $startTime = Carbon::parse($request->startTime, 'America/Bogota');
 
         $endTime = Carbon::parse($request->endTime, 'America/Bogota');
-        // $endTime =(clone $startTime)->addHour(4);
+
         $queryParameters= [
             'calendarId'=> $request->idCalendar,
         ];
