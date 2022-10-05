@@ -21,7 +21,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('get/event/calendar/idcalendar/all/{idcalendar}',          [CalendarController::class, 'getEventCalendarByIdCalendar']);
-Route::get('get/event/calendar/idcalendar/by/datetiem/',              [CalendarController::class, 'getEventCalendarByDate']);
+Route::post('post/event/calendar/idcalendar/by/datetime',              [CalendarController::class, 'getEventCalendarByDate']);
 Route::get('get/event/calendar/all',                                  [CalendarController::class, 'getEventCalendarAllEvent']);
 Route::post('post/add/event/calendar/by/daytime',                     [CalendarController::class, 'addEventCalendarDyDayTime']);
 Route::get('get/add/event/calendar/all/day',                          [CalendarController::class, 'addEventCalendarAllDay']);

@@ -19,7 +19,7 @@ class CalendarService {
             'calendarId'=> $idcalendar,
         ];
         
-         $events = Event::getEventByIdCalendar($startTime, $endTime, $queryParameters);
+        $events = Event::getEventByIdCalendar($startTime, $endTime, $queryParameters);
 
         $allEvents=[];
 
@@ -49,6 +49,7 @@ class CalendarService {
         return $allEvents;
     }
 
+
     public static function getEventByDay(Request $request){
 
         $startTime = Carbon::parse($request->startTime, 'America/Bogota');
@@ -59,7 +60,35 @@ class CalendarService {
             'calendarId'=> $request->idCalendar,
         ];
 
-        return $events = Event::getEventByDateTime($startTime, $endTime, $queryParameters);
+        $events = Event::getEventByDateTime($startTime, $endTime, $queryParameters);
+
+        $eventsByDate=[];
+
+        for ($i=0; $i < sizeof($events); $i++) { 
+            $startD = $events[$i]->googleEvent->start->date;
+            if ($startD == null) {
+                $start = $events[$i]->googleEvent->start->dateTime;
+                $end = $events[$i]->googleEvent->end->dateTime;
+            }else if ($startD != null){
+                $start = $events[$i]->googleEvent->start->date;
+                $end = $events[$i]->googleEvent->end->date;
+            }
+
+            $event = [
+                'nameCalendar'=> $events[$i]->googleEvent->organizer->displayName,
+                'title'=> $events[$i]->googleEvent->summary,
+                'descriptionEvent'=> $events[$i]->googleEvent->description,
+                'locationEvent'=> $events[$i]->googleEvent->location,
+                'dateCreation'=> $events[$i]->googleEvent->created,
+                'colorEvent'=> $events[$i]->googleEvent->colorId,
+                'start'=> $start,
+                'end'=> $end,
+            ];
+            array_push($eventsByDate, $event);
+        }
+
+        return $eventsByDate;
+
     }
 
     public static function getEventFirst(){
