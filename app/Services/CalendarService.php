@@ -24,92 +24,9 @@ class CalendarService {
         $allEvents=[];
 
         for ($i=0; $i < sizeof($events); $i++) { 
-            $startD = $events[$i]->googleEvent->start->date;
-            if ($startD == null) {
-                $start = $events[$i]->googleEvent->start->dateTime;
-                $end = $events[$i]->googleEvent->end->dateTime;
-            }else {
-                $start = $events[$i]->googleEvent->start->date;
-                $end = $events[$i]->googleEvent->end->date;
-            }
-            $bgColor = $events[$i]->googleEvent->colorId;
+           
+            $event = CalendarService::presenToPresent($events[$i]);
 
-            switch ($bgColor) {
-                case 11:
-                    $googleColor = '#C80006';
-                    break;
-                case 4:
-                    $googleColor = '##DF6560';
-                    break;
-                case 6:
-                    $googleColor = '##EE3918';
-                    break;
-                case 5:
-                    $googleColor = '#F4D03F';
-                    break;
-                case 2:
-                    $googleColor = '##2DAA66';
-                    break;
-                case 10:
-                    $googleColor = '#126F33';
-                    break;
-                case 7:
-                    $googleColor = '#1288DE';
-                    break;
-                case 9:
-                    $googleColor = '#313AA6';
-                    break;
-                case 1:
-                    $googleColor = '#6670BF';
-                    break;
-                case 3:
-                    $googleColor = '#7A0099';
-                    break;
-                default:
-                    $googleColor = '#4E4E4E';
-                    break;
-            }
-
-            
-
-
-            $event = [
-                'calendarId'=> $events[$i]->calendarId,
-                'anyoneCanAddSelf'=> $events[$i]->googleEvent->anyoneCanAddSelf,
-                'attendees'=> $events[$i]->googleEvent->attendees,
-                'attendeesOmitted'=>$events[$i]->googleEvent->attendeesOmitted,
-                'color'=> $googleColor,
-                'textColor'=> $googleColor,
-                'conferenceData'=>$events[$i]->googleEvent->conferenceData,
-                'created'=>$events[$i]->googleEvent->created,
-                'creator'=>$events[$i]->googleEvent->creator,
-                'descriptionEvent'=> $events[$i]->googleEvent->description,
-                'end'=> $end,
-                'etag'=> $events[$i]->googleEvent->etag,
-                'eventType'=> $events[$i]->googleEvent->eventType,
-                'guestsCanInviteOthers'=> $events[$i]->googleEvent->guestsCanInviteOthers,
-                'guestsCanModify'=> $events[$i]->googleEvent->guestsCanModify,
-                'guestsCanSeeOtherGuests'=> $events[$i]->googleEvent->guestsCanSeeOtherGuests,
-                'hangoutLink'=> $events[$i]->googleEvent->hangoutLink,
-                'htmlLink'=> $events[$i]->googleEvent->htmlLink,
-                'iCalUID'=> $events[$i]->googleEvent->iCalUID,
-                'id'=> $events[$i]->googleEvent->id,
-                'locationEvent'=> $events[$i]->googleEvent->location,
-                'locked'=> $events[$i]->googleEvent->locked,
-                'organizer'=> $events[$i]->googleEvent->organizer,
-                'originalStartTime'=> $events[$i]->googleEvent->hangoutLink,
-                'privateCopy'=> $events[$i]->googleEvent->privateCopy,
-                'recurrence'=> $events[$i]->googleEvent->recurrence,
-                'recurringEventId'=> $events[$i]->googleEvent->recurringEventId,
-                'reminders'=> $events[$i]->googleEvent->reminders,
-                'sequence'=> $events[$i]->googleEvent->sequence,
-                'start'=> $start,
-                'status'=> $events[$i]->googleEvent->status,
-                'title'=> $events[$i]->googleEvent->summary,
-                'transparency'=> $events[$i]->googleEvent->transparency,
-                'updated'=> $events[$i]->googleEvent->updated,
-                'visibility'=> $events[$i]->googleEvent->visibility,
-            ];
             array_push($allEvents, $event);
         }
 
@@ -163,19 +80,89 @@ class CalendarService {
     }
 
 
-    public static function addEventByDayTime(){
+    public static function addEventByDayTime(Request $request){
         $event = new Event;
 
-        $event->name = 'A new event';
-        $event->description = 'Event description';
-        $event->startDateTime = Carbon::now();
-        $event->endDateTime = Carbon::now()->addHour();
-        $event->addAttendee([
-            'email' => 'john@example.com',
-            'name' => 'John Doe',
-            'comment' => 'Lorum ipsum',
-        ]);
-        $event->addAttendee(['email' => 'anotherEmail@gmail.com']);
+        // $event->name = 'A new event';
+        // $event->description = 'Event description';
+        // $event->startDateTime = Carbon::now();
+        // $event->endDateTime = Carbon::now()->addHour();
+
+
+        $bgColor = $request->color;
+
+        switch ($bgColor) {
+            case '#C80006':
+                $googleColor = 11;
+                break;
+            case '##DF6560':
+                $googleColor = 4;
+                break;
+            case '##EE3918':
+                $googleColor = 6;
+                break;
+            case '#F4D03F':
+                $googleColor = 5;
+                break;
+            case '#2DAA66':
+                $googleColor = 2;
+                break;
+            case '#126F33':
+                $googleColor = 10;
+                break;
+            case '#1288DE':
+                $googleColor = 7;
+                break;
+            case '#313AA6':
+                $googleColor = 9;
+                break;
+            case '#6670BF':
+                $googleColor = 1;
+                break;
+            case '#7A0099':
+                $googleColor = 3;
+                break;
+            default:
+                $googleColor = '#4E4E4E';
+                break;
+        }
+
+
+        $event->calendarId = $request->calendarId;
+        $event->googleEvent->anyoneCanAddSelf = $request->anyoneCanAddSelf;
+        $event->googleEvent->attendees = $request->attendees;
+        $event->googleEvent->attendeesOmitted = $request->attendeesOmitted;
+        $event->googleEvent->colorId = $request->color;
+        $event->googleEvent->conferenceData = $request->conferenceData;
+        $event->googleEvent->created = $request->created;
+        $event->googleEvent->creator = $request->creator;
+        $event->googleEvent->description = $request->descriptionEvent;
+        $event->googleEvent->end->dateTime = $request->end;
+        $event->googleEvent->etag = $request->etag;
+        $event->googleEvent->eventType = $request->eventType;
+        $event->googleEvent->guestsCanInviteOthers = $request->guestsCanInviteOthers;
+        $event->googleEvent->guestsCanModify = $request->guestsCanModify;
+        $event->googleEvent->guestsCanSeeOtherGuests = $request->guestsCanSeeOtherGuests;
+        $event->googleEvent->hangoutLink = $request->hangoutLink;
+        $event->googleEvent->htmlLink = $request->htmlLink;
+        $event->googleEvent->iCalUID = $request->iCalUID;
+        $event->googleEvent->id = $request->id;
+        $event->googleEvent->location = $request->locationEvent;
+        $event->googleEvent->locked = $request->locked;
+        $event->googleEvent->organizer = $request->organizer;
+        $event->googleEvent->hangoutLink = $request->originalStartTime;
+        $event->googleEvent->privateCopy = $request->privateCopy;
+        $event->googleEvent->recurrence = $request->recurrence;
+        $event->googleEvent->recurringEventId = $request->recurringEventId;
+        $event->googleEvent->reminders = $request->reminders;
+        $event->googleEvent->sequence = $request->sequence;
+        $event->googleEvent->start->dateTime = $request->start;
+        $event->googleEvent->status = $request->status;
+        $event->googleEvent->summary = $request->title;
+        $event->googleEvent->transparency = $request->transparency;
+        $event->googleEvent->updated = $request->updated;
+        $event->googleEvent->visibility = $request->visibility;
+      
 
         $event->save();
     }
@@ -189,14 +176,15 @@ class CalendarService {
          ]);
     }
 
-    public static function addEventAllDay(){
+    public static function addEventAllDay($request){
         $event = new Event;
         
         $event->calendarId = 'nietojr1@gmail.com';
-        $event->name = 'A new full day event';
+        $event->name = 'Agregando nuevo evento todo el dia';
         $event->description = 'Event description';
         $event->startDate = Carbon::now();
         $event->endDate = Carbon::now()->addDay();
+
 
         $event->save();
     }
@@ -221,7 +209,95 @@ class CalendarService {
 
         $event->name = 'My updated title';
         $event->save();
+    }
 
+    public static function presenToPresent($events){
+
+        $startD = $events->googleEvent->start->date;
+        if ($startD == null) {
+            $start = $events->googleEvent->start->dateTime;
+            $end = $events->googleEvent->end->dateTime;
+        }else {
+            $start = $events->googleEvent->start->date;
+            $end = $events->googleEvent->end->date;
+        }
+
+        $bgColor = $events->googleEvent->colorId;
+
+        switch ($bgColor) {
+            case 11:
+                $googleColor = '#C80006';
+                break;
+            case 4:
+                $googleColor = '##DF6560';
+                break;
+            case 6:
+                $googleColor = '##EE3918';
+                break;
+            case 5:
+                $googleColor = '#F4D03F';
+                break;
+            case 2:
+                $googleColor = '#2DAA66';
+                break;
+            case 10:
+                $googleColor = '#126F33';
+                break;
+            case 7:
+                $googleColor = '#1288DE';
+                break;
+            case 9:
+                $googleColor = '#313AA6';
+                break;
+            case 1:
+                $googleColor = '#6670BF';
+                break;
+            case 3:
+                $googleColor = '#7A0099';
+                break;
+            default:
+                $googleColor = '#4E4E4E';
+                break;
+        }
+
+        $event = [
+        'calendarId'=> $events->calendarId,
+        'anyoneCanAddSelf'=> $events->googleEvent->anyoneCanAddSelf,
+        'attendees'=> $events->googleEvent->attendees,
+        'attendeesOmitted'=>$events->googleEvent->attendeesOmitted,
+        'color'=> $googleColor,
+        'conferenceData'=>$events->googleEvent->conferenceData,
+        'created'=>$events->googleEvent->created,
+        'creator'=>$events->googleEvent->creator,
+        'descriptionEvent'=> $events->googleEvent->description,
+        'end'=> $end,
+        'etag'=> $events->googleEvent->etag,
+        'eventType'=> $events->googleEvent->eventType,
+        'guestsCanInviteOthers'=> $events->googleEvent->guestsCanInviteOthers,
+        'guestsCanModify'=> $events->googleEvent->guestsCanModify,
+        'guestsCanSeeOtherGuests'=> $events->googleEvent->guestsCanSeeOtherGuests,
+        'hangoutLink'=> $events->googleEvent->hangoutLink,
+        'htmlLink'=> $events->googleEvent->htmlLink,
+        'iCalUID'=> $events->googleEvent->iCalUID,
+        'id'=> $events->googleEvent->id,
+        'locationEvent'=> $events->googleEvent->location,
+        'locked'=> $events->googleEvent->locked,
+        'organizer'=> $events->googleEvent->organizer,
+        'originalStartTime'=> $events->googleEvent->hangoutLink,
+        'privateCopy'=> $events->googleEvent->privateCopy,
+        'recurrence'=> $events->googleEvent->recurrence,
+        'recurringEventId'=> $events->googleEvent->recurringEventId,
+        'reminders'=> $events->googleEvent->reminders,
+        'sequence'=> $events->googleEvent->sequence,
+        'start'=> $start,
+        'status'=> $events->googleEvent->status,
+        'title'=> $events->googleEvent->summary,
+        'transparency'=> $events->googleEvent->transparency,
+        'updated'=> $events->googleEvent->updated,
+        'visibility'=> $events->googleEvent->visibility,
+        ];
+
+        return $event;
     }
 
 }

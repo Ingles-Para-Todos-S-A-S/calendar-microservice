@@ -25,6 +25,14 @@ class CalendarController extends Controller {
         return CalendarService::addEventAllDay();
     }
 
+    function addEventCalendarByDayTime(Request $request) {
+        if(isset($request->params)) {
+            return CalendarService::addEventByDayTime(new Request($request->params));
+        }else {
+            return ApiResponse::response(3, null);
+        }
+    }
+
     function updateEventCalendarByIdEvent($idEvent) {
         return CalendarService::updateEventByCode($idEvent);
     }
