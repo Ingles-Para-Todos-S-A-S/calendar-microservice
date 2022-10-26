@@ -77,11 +77,14 @@ class CalendarService {
 
     public static function getEventFirst(){
         $eventId = Event::get()->first()->id;
+        
     }
 
 
     public static function addEventByDayTime(Request $request){
+         
         $event = new Event;
+        
 
         // $event->name = 'A new event';
         // $event->description = 'Event description';
@@ -127,17 +130,20 @@ class CalendarService {
                 break;
         }
 
-
         $event->calendarId = $request->calendarId;
         $event->googleEvent->anyoneCanAddSelf = $request->anyoneCanAddSelf;
         $event->googleEvent->attendees = $request->attendees;
         $event->googleEvent->attendeesOmitted = $request->attendeesOmitted;
         $event->googleEvent->colorId = $request->color;
-        $event->googleEvent->conferenceData = $request->conferenceData;
+
+        // return $event->googleEvent->conferenceData->conferenceSolution->name = $request->conferenceDataName;
         $event->googleEvent->created = $request->created;
-        $event->googleEvent->creator = $request->creator;
+        $event->googleEvent->creator->id = $request->creatorId;
+        $event->googleEvent->creator->displayName = $request->creatorDisplayName;
+        $event->googleEvent->creator->email = $request->creatorEmail;
         $event->googleEvent->description = $request->descriptionEvent;
         $event->googleEvent->end->dateTime = $request->end;
+        $event->googleEvent->end->timeZone = "America/Bogota";
         $event->googleEvent->etag = $request->etag;
         $event->googleEvent->eventType = $request->eventType;
         $event->googleEvent->guestsCanInviteOthers = $request->guestsCanInviteOthers;
@@ -149,22 +155,24 @@ class CalendarService {
         $event->googleEvent->id = $request->id;
         $event->googleEvent->location = $request->locationEvent;
         $event->googleEvent->locked = $request->locked;
-        $event->googleEvent->organizer = $request->organizer;
+        $event->googleEvent->organizer->id = $request->organizerId;
+        $event->googleEvent->organizer->displayName = $request->organizerDisplayName;
+        $event->googleEvent->organizer->email = $request->organizerEmail;
         $event->googleEvent->hangoutLink = $request->originalStartTime;
         $event->googleEvent->privateCopy = $request->privateCopy;
         $event->googleEvent->recurrence = $request->recurrence;
         $event->googleEvent->recurringEventId = $request->recurringEventId;
-        $event->googleEvent->reminders = $request->reminders;
+        $event->googleEvent->reminders->useDefault = $request->remindersUseDefault;
         $event->googleEvent->sequence = $request->sequence;
         $event->googleEvent->start->dateTime = $request->start;
+        $event->googleEvent->start->timneZome = "America/Bogota";
         $event->googleEvent->status = $request->status;
         $event->googleEvent->summary = $request->title;
         $event->googleEvent->transparency = $request->transparency;
         $event->googleEvent->updated = $request->updated;
         $event->googleEvent->visibility = $request->visibility;
       
-
-        $event->save();
+        return $event->save();
     }
 
 
