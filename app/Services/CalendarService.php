@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Event;
 use Carbon\Carbon;
+use Google_Service_Calendar_EventDateTime;
 use Date;
 
 class CalendarService {
@@ -98,10 +99,10 @@ class CalendarService {
             case '#C80006':
                 $googleColor = 11;
                 break;
-            case '##DF6560':
+            case '#DF6560':
                 $googleColor = 4;
                 break;
-            case '##EE3918':
+            case '#EE3918':
                 $googleColor = 6;
                 break;
             case '#F4D03F':
@@ -184,7 +185,7 @@ class CalendarService {
          ]);
     }
 
-    public static function addEventAllDay($request){
+    public static function addEventAllDay(){
         $event = new Event;
         
         $event->calendarId = 'nietojr1@gmail.com';
@@ -193,6 +194,38 @@ class CalendarService {
         $event->startDate = Carbon::now();
         $event->endDate = Carbon::now()->addDay();
 
+
+        $event->save();
+    }
+
+
+    public static function addEventPrueba($request){
+        $event = new Event;
+        
+        $event->calendarId = $request->calendarId;
+        // $event->name = ($request->title);
+        // $event->description = $request->descriptionEvent;
+        // $event->startDate = Carbon::now();
+        // $event->endDate = Carbon::now()->addDay();
+
+
+        // $event->calendarId = $request->calendarId;
+        // $event->googleEvent->setAttendees($request->attendees);
+        $event->googleEvent->setAttendeesOmitted($request->attendeesOmitted);
+        $event->googleEvent->setColorId($request->color);
+        $event->googleEvent->setCreated(new Carbon($request->created));
+        $event->googleEvent->setDescription($request->descriptionEvent);
+        $event->endDate = new Carbon($request->end);
+        $event->googleEvent->setHangoutLink($request->hangoutLink);
+        $event->googleEvent->setLocation($request->locationEvent);
+        $star = new Google_Service_Calendar_EventDateTime;
+        $star2 =new Request($request->start);
+        $star->setDate($star2->date);
+        $star->setDateTime($star2->dateTime);
+        $star->setTimeZone($star2->timeZone);
+        $event->googleEvent->setStart($star);
+        return $star->getStart();
+        $event->googleEvent->setSummary($request->title);
 
         $event->save();
     }
@@ -237,10 +270,10 @@ class CalendarService {
                 $googleColor = '#C80006';
                 break;
             case 4:
-                $googleColor = '##DF6560';
+                $googleColor = '#DF6560';
                 break;
             case 6:
-                $googleColor = '##EE3918';
+                $googleColor = '#EE3918';
                 break;
             case 5:
                 $googleColor = '#F4D03F';
