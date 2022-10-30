@@ -219,6 +219,7 @@ class CalendarService {
         // $star->setTimeZone($star2->timeZone);
         // $event->googleEvent->setStart($star);
         // return $star->getStart();
+        //new modi
         $event->googleEvent->setSummary($request->title);
 
         $event->save();
