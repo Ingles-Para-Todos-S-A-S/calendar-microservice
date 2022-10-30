@@ -19,13 +19,13 @@ class CalendarService {
         $queryParameters= [
             'calendarId'=> $idcalendar,
         ];
-        
+
         $events = Event::getEventByIdCalendar($startTime, $endTime, $queryParameters);
 
         $allEvents=[];
 
-        for ($i=0; $i < sizeof($events); $i++) { 
-           
+        for ($i=0; $i < sizeof($events); $i++) {
+
             $event = CalendarService::presenToPresent($events[$i]);
 
             array_push($allEvents, $event);
@@ -49,7 +49,7 @@ class CalendarService {
 
         $eventsByDate=[];
 
-        for ($i=0; $i < sizeof($events); $i++) { 
+        for ($i=0; $i < sizeof($events); $i++) {
             $startD = $events[$i]->googleEvent->start->date;
             if ($startD == null) {
                 $start = $events[$i]->googleEvent->start->dateTime;
@@ -78,14 +78,14 @@ class CalendarService {
 
     public static function getEventFirst(){
         $eventId = Event::get()->first()->id;
-        
+
     }
 
 
     public static function addEventByDayTime(Request $request){
-         
+
         $event = new Event;
-        
+
 
         // $event->name = 'A new event';
         // $event->description = 'Event description';
@@ -172,7 +172,7 @@ class CalendarService {
         $event->googleEvent->transparency = $request->transparency;
         $event->googleEvent->updated = $request->updated;
         $event->googleEvent->visibility = $request->visibility;
-      
+
         return $event->save();
     }
 
@@ -187,7 +187,7 @@ class CalendarService {
 
     public static function addEventAllDay(){
         $event = new Event;
-        
+
         $event->calendarId = 'nietojr1@gmail.com';
         $event->name = 'Agregando nuevo evento todo el dia';
         $event->description = 'Event description';
@@ -201,15 +201,9 @@ class CalendarService {
 
     public static function addEventPrueba($request){
         $event = new Event;
-        
+
         $event->calendarId = $request->calendarId;
-        // $event->name = ($request->title);
-        // $event->description = $request->descriptionEvent;
-        // $event->startDate = Carbon::now();
-        // $event->endDate = Carbon::now()->addDay();
-
-
-        // $event->calendarId = $request->calendarId;
+        $event->startDate = Carbon::now();
         // $event->googleEvent->setAttendees($request->attendees);
         $event->googleEvent->setAttendeesOmitted($request->attendeesOmitted);
         $event->googleEvent->setColorId($request->color);
@@ -218,13 +212,13 @@ class CalendarService {
         $event->endDate = new Carbon($request->end);
         $event->googleEvent->setHangoutLink($request->hangoutLink);
         $event->googleEvent->setLocation($request->locationEvent);
-        $star = new Google_Service_Calendar_EventDateTime;
-        $star2 =new Request($request->start);
-        $star->setDate($star2->date);
-        $star->setDateTime($star2->dateTime);
-        $star->setTimeZone($star2->timeZone);
-        $event->googleEvent->setStart($star);
-        return $star->getStart();
+        // $star = new Google_Service_Calendar_EventDateTime;
+        // $star2 =new Request($request->start);
+        // $star->setDate($star2->date);
+        // $star->setDateTime($star2->dateTime);
+        // $star->setTimeZone($star2->timeZone);
+        // $event->googleEvent->setStart($star);
+        // return $star->getStart();
         $event->googleEvent->setSummary($request->title);
 
         $event->save();
