@@ -6,7 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Event;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Google_Service_Calendar_EventDateTime;
+use Google_Service_Calendar_Event;
+use DateTime;
 use Date;
 
 class CalendarService {
@@ -182,7 +185,7 @@ class CalendarService {
             'name' => 'A new event Static',
             'startDateTime' => Carbon::now(),
             'endDateTime' => Carbon::now()->addHour(),
-         ]);
+        ]);
     }
 
     public static function addEventAllDay(){
@@ -194,16 +197,16 @@ class CalendarService {
         $event->startDate = Carbon::now();
         $event->endDate = Carbon::now()->addDay();
 
-
         $event->save();
     }
 
 
     public static function addEventPrueba($request){
         $event = new Event;
+        $eventDateTime = new Google_Service_Calendar_EventDateTime;
 
         $event->calendarId = $request->calendarId;
-        $event->startDate = Carbon::now();
+        // $event->startDate = Carbon::now();
         // $event->googleEvent->setAttendees($request->attendees);
         $event->googleEvent->setAttendeesOmitted($request->attendeesOmitted);
         $event->googleEvent->setColorId($request->color);
@@ -212,15 +215,24 @@ class CalendarService {
         $event->endDate = new Carbon($request->end);
         $event->googleEvent->setHangoutLink($request->hangoutLink);
         $event->googleEvent->setLocation($request->locationEvent);
-        // $star = new Google_Service_Calendar_EventDateTime;
+        $event->googleEvent->setSummary($request->title);
+
+        $starformat = new Carbon($request->start);
+        $eventDateTime->setDate($starformat->format('Y-m-d'));
+        return (string) $starformat->getTimezone();
+            // $eventDateTime->setDateTime($starformat->format(DateTime::RFC3339));
+        $eventDateTime->setTimezone((string) $starformat->getTimezone());
+
+        // $event->googleEvent->startType(setDate("null"));
+        // $event->googleEvent->start->setDateTime("2022/10/30T11:00:00-05:00");
+        // $event->googleEvent->start->setTimeZone("America/Bogota");
+
         // $star2 =new Request($request->start);
-        // $star->setDate($star2->date);
-        // $star->setDateTime($star2->dateTime);
+        // $star = new Google_Service_Calendar_EventDateTime($request->strat);
+        // $star->setStart(setDate(null), setDateTime($star2->dateTime), setTimeZone($star2->timeZone));
         // $star->setTimeZone($star2->timeZone);
         // $event->googleEvent->setStart($star);
         // return $star->getStart();
-        //new modi
-        $event->googleEvent->setSummary($request->title);
 
         $event->save();
     }

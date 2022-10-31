@@ -52,8 +52,8 @@ class Event
      *
      * @return mixed
      */
-    
-    
+
+
      public static function create(array $properties, string $calendarId, $optParams = [])
     {
         $event = new static;
@@ -283,6 +283,29 @@ class Event
     }
 
     protected function setDateProperty(string $name, CarbonInterface $date)
+    {
+        $eventDateTime = new Google_Service_Calendar_EventDateTime;
+
+        if (in_array($name, ['start.date', 'end.date'])) {
+            $eventDateTime->setDate($date->format('Y-m-d'));
+            $eventDateTime->setTimezone((string) $date->getTimezone());
+        }
+
+        if (in_array($name, ['start.dateTime', 'end.dateTime'])) {
+            $eventDateTime->setDateTime($date->format(DateTime::RFC3339));
+            $eventDateTime->setTimezone((string) $date->getTimezone());
+        }
+
+        if (Str::startsWith($name, 'start')) {
+            $this->googleEvent->setStart($eventDateTime);
+        }
+
+        if (Str::startsWith($name, 'end')) {
+            $this->googleEvent->setEnd($eventDateTime);
+        }
+    }
+
+    public function setDatePro(string $name, CarbonInterface $date)
     {
         $eventDateTime = new Google_Service_Calendar_EventDateTime;
 
