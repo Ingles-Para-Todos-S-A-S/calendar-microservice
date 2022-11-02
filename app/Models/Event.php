@@ -282,7 +282,7 @@ class Event
         $this->attendees[] = new Google_Service_Calendar_EventAttendee([
             'email' => $attendee['email'],
             'comment' => $attendee['comment'] ?? null,
-            'displayName' => $attendee['name'] ?? null,
+            'displayName' => $attendee['displayName'] ?? null,
         ]);
 
         $this->googleEvent->setAttendees($this->attendees);

@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\ClassRoomController;
+
 
 
 /*
@@ -26,6 +28,11 @@ Route::post('post/add/event/calendar/by/daytime',                     [CalendarC
 Route::get('get/add/event/calendar/all/day',                          [CalendarController::class, 'addEventCalendarAllDay']);
 Route::put('put/update/event/calendar/by/idevent/{idevent}',          [CalendarController::class, 'updateEventCalendarByIdEvent']);
 Route::get('get/delete/event/calendar/by/idevent/{idevent}',          [CalendarController::class, 'deleteEventCalendarByIdEvent']);
+
+///// Classrrom
+Route::post('post/classroom/by/idcalendar',                           [ClassRoomController::class, 'getClassRoomByIdCalMod']);
+Route::get('get/all/classroom',                                       [ClassRoomController::class, 'getAllClassRoom']);
+
 
 
 

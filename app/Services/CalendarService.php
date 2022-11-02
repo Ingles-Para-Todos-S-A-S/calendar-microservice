@@ -88,16 +88,12 @@ class CalendarService {
     public static function addEventByDayTime(Request $request){
 
         $event = new Event;
-
-
         // $event->name = 'A new event';
         // $event->description = 'Event description';
         // $event->startDateTime = Carbon::now();
         // $event->endDateTime = Carbon::now()->addHour();
 
-
         $bgColor = $request->color;
-
         switch ($bgColor) {
             case '#C80006':
                 $googleColor = 11;
@@ -204,13 +200,12 @@ class CalendarService {
 
     public static function addEventPrueba($request){
         $numAttendees = sizeof($request->attendees);
-        for ($i=0; $i < $numAttendees-1 ; $i++) {
-            
-
-        }
         $event = new Event;
+        // for ($i=0; $i < $numAttendees ; $i++) {
+            //     $event->addAttendee($request->attendees[$i]);
+            // }
+        // return  $event->googleEvent->getAttendees();
         $event->calendarId = $request->calendarId;
-        $event->googleEvent->setAttendees($request->attendees);
         $event->googleEvent->setAttendeesOmitted($request->attendeesOmitted);
         $event->googleEvent->setColorId($request->color);
         $event->googleEvent->setDescription($request->descriptionEvent);
@@ -220,6 +215,7 @@ class CalendarService {
         $event->googleEvent->setSummary($request->title);
         $event->startDateTime = new Carbon($request->start);
         $event->save();
+        
     }
 
     public static function deleteEventByCode($idEvent){
