@@ -139,40 +139,40 @@ class CalendarService {
         $event->googleEvent->attendees = $request->attendees;
         $event->googleEvent->attendeesOmitted = $request->attendeesOmitted;
         $event->googleEvent->colorId = $request->color;
-
-        // return $event->googleEvent->conferenceData->conferenceSolution->name = $request->conferenceDataName;
+        //$event->googleEvent->conferenceData->conferenceSolution->name = $request->conferenceDataName;
         $event->googleEvent->created = $request->created;
-        $event->googleEvent->creator->id = $request->creatorId;
-        $event->googleEvent->creator->displayName = $request->creatorDisplayName;
-        $event->googleEvent->creator->email = $request->creatorEmail;
+        // $event->googleEvent->creator->id = $request->creatorId;
+        // $event->googleEvent->creator->displayName = $request->creatorDisplayName;
+        // $event->googleEvent->creator->email = $request->creatorEmail;
         $event->googleEvent->description = $request->descriptionEvent;
-        $event->googleEvent->end->dateTime = $request->end;
-        $event->googleEvent->end->timeZone = "America/Bogota";
-        $event->googleEvent->etag = $request->etag;
+        // $event->googleEvent->end->date = null;
+        $event->endDate = $request->end;
+        // $event->googleEvent->end->timeZone = "America/Bogota";
+        // $event->googleEvent->etag = $request->etag;
         $event->googleEvent->eventType = $request->eventType;
         $event->googleEvent->guestsCanInviteOthers = $request->guestsCanInviteOthers;
         $event->googleEvent->guestsCanModify = $request->guestsCanModify;
         $event->googleEvent->guestsCanSeeOtherGuests = $request->guestsCanSeeOtherGuests;
         $event->googleEvent->hangoutLink = $request->hangoutLink;
         $event->googleEvent->htmlLink = $request->htmlLink;
-        $event->googleEvent->iCalUID = $request->iCalUID;
-        $event->googleEvent->id = $request->id;
+        // $event->googleEvent->iCalUID = $request->iCalUID;
+        // $event->googleEvent->id = $request->id;
         $event->googleEvent->location = $request->locationEvent;
         $event->googleEvent->locked = $request->locked;
-        $event->googleEvent->organizer->id = $request->organizerId;
-        $event->googleEvent->organizer->displayName = $request->organizerDisplayName;
-        $event->googleEvent->organizer->email = $request->organizerEmail;
-        $event->googleEvent->hangoutLink = $request->originalStartTime;
-        $event->googleEvent->privateCopy = $request->privateCopy;
-        $event->googleEvent->recurrence = $request->recurrence;
-        $event->googleEvent->recurringEventId = $request->recurringEventId;
-        $event->googleEvent->reminders->useDefault = $request->remindersUseDefault;
-        $event->googleEvent->sequence = $request->sequence;
-        $event->googleEvent->start->dateTime = $request->start;
-        $event->googleEvent->start->timneZome = "America/Bogota";
-        $event->googleEvent->status = $request->status;
+        // $event->organizer->id = $request->organizerId;
+        // $event->organizer->self = $request->organizerSelf;
+        // $event->organizer->displayName = $request->organizerDisplayName;
+        // $event->organizer->email = $request->organizerEmail;
+        // $event->googleEvent->hangoutLink = $request->originalStartTime;
+        // $event->googleEvent->privateCopy = $request->privateCopy;
+        // $event->googleEvent->recurrence = $request->recurrence;
+        // $event->googleEvent->recurringEventId = $request->recurringEventId;
+        // $event->googleEvent->reminders->useDefault = $request->remindersUseDefault;
+        $event->dateTime = $request->start;
+        // $event->googleEvent->start->timneZome = "America/Bogota";
+        // $event->googleEvent->status = $request->status;
         $event->googleEvent->summary = $request->title;
-        $event->googleEvent->transparency = $request->transparency;
+        // $event->googleEvent->transparency = $request->transparency;
         $event->googleEvent->updated = $request->updated;
         $event->googleEvent->visibility = $request->visibility;
 
@@ -180,12 +180,13 @@ class CalendarService {
     }
 
 
-    public static function addEventSatic(){
+    public static function addEventSatic($request){
+
         Event::create([
             'name' => 'A new event Static',
             'startDateTime' => Carbon::now(),
-            'endDateTime' => Carbon::now()->addHour(),
-        ]);
+            'endDateTime' => new Carbon($request->end),
+        ],"nietojr1@gmail.com",[]);
     }
 
     public static function addEventAllDay(){
@@ -202,38 +203,22 @@ class CalendarService {
 
 
     public static function addEventPrueba($request){
-        $event = new Event;
-        $eventDateTime = new Google_Service_Calendar_EventDateTime;
+        $numAttendees = sizeof($request->attendees);
+        for ($i=0; $i < $numAttendees-1 ; $i++) {
+            
 
+        }
+        $event = new Event;
         $event->calendarId = $request->calendarId;
-        // $event->startDate = Carbon::now();
-        // $event->googleEvent->setAttendees($request->attendees);
+        $event->googleEvent->setAttendees($request->attendees);
         $event->googleEvent->setAttendeesOmitted($request->attendeesOmitted);
         $event->googleEvent->setColorId($request->color);
-        $event->googleEvent->setCreated(new Carbon($request->created));
         $event->googleEvent->setDescription($request->descriptionEvent);
-        $event->endDate = new Carbon($request->end);
+        $event->endDateTime = new Carbon($request->end);
         $event->googleEvent->setHangoutLink($request->hangoutLink);
         $event->googleEvent->setLocation($request->locationEvent);
         $event->googleEvent->setSummary($request->title);
-
-        $starformat = new Carbon($request->start);
-        $eventDateTime->setDate($starformat->format('Y-m-d'));
-        return (string) $starformat->getTimezone();
-            // $eventDateTime->setDateTime($starformat->format(DateTime::RFC3339));
-        $eventDateTime->setTimezone((string) $starformat->getTimezone());
-
-        // $event->googleEvent->startType(setDate("null"));
-        // $event->googleEvent->start->setDateTime("2022/10/30T11:00:00-05:00");
-        // $event->googleEvent->start->setTimeZone("America/Bogota");
-
-        // $star2 =new Request($request->start);
-        // $star = new Google_Service_Calendar_EventDateTime($request->strat);
-        // $star->setStart(setDate(null), setDateTime($star2->dateTime), setTimeZone($star2->timeZone));
-        // $star->setTimeZone($star2->timeZone);
-        // $event->googleEvent->setStart($star);
-        // return $star->getStart();
-
+        $event->startDateTime = new Carbon($request->start);
         $event->save();
     }
 
