@@ -11,6 +11,8 @@ use Google_Service_Calendar_EventDateTime;
 use Google_Service_Calendar_Event;
 use DateTime;
 use Date;
+use App\Models\CourseClassroom;
+
 
 class CalendarService {
 
@@ -199,6 +201,34 @@ class CalendarService {
 
 
     public static function addEventPrueba($request){
+
+        //Traer todos los salones de acuerdo a la modalidad y si tienen correo o idCalendar
+        $allClassRoomBy = CourseClassroom::ClassRoomByModId($request->course_modality);
+
+
+        //Cal Numero de Semanas en el rango de fechas
+        $firstWeek=(int) date('W',strtotime($request->startDate));
+        $lastWeek=(int) date('W',strtotime($request->endDate));
+        $nSena = [];
+        while ($firstWeek <=  $lastWeek) {
+            $nSena[] = $firstWeek;
+            $firstWeek++;
+        }
+        json_encode($nSena);
+        
+        // Cuantos dias hay en un margen de fechas sin feriados 
+        $nada = $this->daysWeek($request->startDate, $request->endDate);
+
+
+        //validacion si hay salones
+        if ($allClassRoomBy==null) {
+            return "No hay salas Creadas";
+        } else {
+            for ($i=0; $i < sizeof($allClassRoomBy); $i++) { 
+                return ("sala[$i]");
+            }
+        }
+        
         $numAttendees = sizeof($request->attendees);
         $event = new Event;
         // for ($i=0; $i < $numAttendees ; $i++) {
@@ -328,5 +358,38 @@ class CalendarService {
 
         return $event;
     }
+
+    public function daysWeek($startDate, $endDate){
+    
+        $start = new DateTime($startDate);
+        $end = new DateTime($endDate);
+
+        //de lo contrario, se excluye la fecha de finalización (¿error?)
+        $end->modify('+1 day');
+
+        $interval = $end->diff($start);
+
+        // total dias
+        $days = $interval->days;
+
+        // crea un período de fecha iterable (P1D equivale a 1 día)
+        $period = new DatePeriod($start, new DateInterval('P1D'), $end);
+
+        // almacenado como matriz, por lo que puede agregar más de una fecha feriada
+        $holidays = array('2022-11-09');
+
+        foreach($period as $dt) {
+            $curr = $dt->format('D');
+
+            // obtiene si es Sábado o Domingo
+            if($curr == 'Sat' || $curr == 'Sun') {
+                $days--;
+            }elseif (in_array($dt->format('Y-m-d'), $holidays)) {
+                $days--;
+            }
+        }
+        return $days;
+}
+
 
 }

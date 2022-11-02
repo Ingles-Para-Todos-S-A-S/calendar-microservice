@@ -35,4 +35,13 @@ class CourseClassroom extends Model{
         return sizeof($classroom)>0 ? $classroom : null;
     }
 
+    public static function ClassRoomByModId($codModality){
+
+        $classroom = CourseClassroom::where('id_calendar','!=', "")
+                                    ->where('course_modality','=', $codModality)
+                                    ->get();
+
+        return sizeof($classroom)>0 ? $classroom : null;
+    }
+
 }
