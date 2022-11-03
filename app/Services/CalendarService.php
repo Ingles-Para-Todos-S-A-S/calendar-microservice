@@ -10,6 +10,8 @@ use Carbon\CarbonInterface;
 use Google_Service_Calendar_EventDateTime;
 use Google_Service_Calendar_Event;
 use DateTime;
+use DatePeriod;
+use DateInterval;
 use Date;
 use App\Models\CourseClassroom;
 
@@ -205,19 +207,9 @@ class CalendarService {
         //Traer todos los salones de acuerdo a la modalidad y si tienen correo o idCalendar
         $allClassRoomBy = CourseClassroom::ClassRoomByModId($request->course_modality);
 
-
-        //Cal Numero de Semanas en el rango de fechas
-        $firstWeek=(int) date('W',strtotime($request->startDate));
-        $lastWeek=(int) date('W',strtotime($request->endDate));
-        $nSena = [];
-        while ($firstWeek <=  $lastWeek) {
-            $nSena[] = $firstWeek;
-            $firstWeek++;
-        }
-        json_encode($nSena);
         
         // Cuantos dias hay en un margen de fechas sin feriados 
-        $nada = $this->daysWeek($request->startDate, $request->endDate);
+        return CalendarService::daysWeek($request->startDate, $request->numClass, $request->weekDays);
 
 
         //validacion si hay salones
@@ -229,9 +221,8 @@ class CalendarService {
             }
         }
         
-        $numAttendees = sizeof($request->attendees);
         $event = new Event;
-        // for ($i=0; $i < $numAttendees ; $i++) {
+        // for ($i=0; $i < sizeof($request->attendees) ; $i++) {
             //     $event->addAttendee($request->attendees[$i]);
             // }
         // return  $event->googleEvent->getAttendees();
@@ -359,37 +350,45 @@ class CalendarService {
         return $event;
     }
 
-    public function daysWeek($startDate, $endDate){
-    
+    public static function daysWeek($startDate, $numClass, $weekDays){
+       
         $start = new DateTime($startDate);
-        $end = new DateTime($endDate);
 
-        //de lo contrario, se excluye la fecha de finalización (¿error?)
-        $end->modify('+1 day');
+        $period = new DatePeriod($start, new DateInterval('P1D'), 365);
 
-        $interval = $end->diff($start);
+        $holidays = array('2022-11-07');
 
-        // total dias
-        $days = $interval->days;
+        $daySelect[]=[];
 
-        // crea un período de fecha iterable (P1D equivale a 1 día)
-        $period = new DatePeriod($start, new DateInterval('P1D'), $end);
-
-        // almacenado como matriz, por lo que puede agregar más de una fecha feriada
-        $holidays = array('2022-11-09');
-
+        $i=0;
+        
         foreach($period as $dt) {
+            $time = time();
             $curr = $dt->format('D');
-
-            // obtiene si es Sábado o Domingo
-            if($curr == 'Sat' || $curr == 'Sun') {
-                $days--;
-            }elseif (in_array($dt->format('Y-m-d'), $holidays)) {
-                $days--;
+            if(in_array($curr, $weekDays) && sizeof($daySelect)<$numClass) {
+                
+                if (!in_array($dt->format('Y-m-d'), $holidays)) {
+                    $daySelect[$i]=($dt)->format('Y-m-d');
+                    $i++;
+                }
             }
         }
-        return $days;
-}
+
+
+        return $daySelect;
+    }
+
+    public static function numberWeeks($startDate, $endDate){
+        $firstWeek=(int) date('W',strtotime($startDate));
+        $lastWeek=(int) date('W',strtotime($endDate));
+        $nSena = [];
+        while ($firstWeek <=  $lastWeek) {
+            $nSena[] = $firstWeek;
+            $firstWeek++;
+        }
+        return json_encode($nSena);
+       
+    }
 
 
 }

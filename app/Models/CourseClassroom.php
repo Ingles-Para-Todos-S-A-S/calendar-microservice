@@ -44,4 +44,6 @@ class CourseClassroom extends Model{
         return sizeof($classroom)>0 ? $classroom : null;
     }
 
+    
+
 }
