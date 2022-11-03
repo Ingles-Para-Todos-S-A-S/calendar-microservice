@@ -205,28 +205,30 @@ class CalendarService {
     public static function addEventPrueba($request){
 
         //Traer todos los salones de acuerdo a la modalidad y si tienen correo o idCalendar
-         $allClassRoomBy = CourseClassroom::ClassRoomByModId($request->course_modality);
+        $classRoom = CourseClassroom::ClassRoomByModId($request->course_modality);
 
         //Traer todos los teacher si tienen correo o idCalendar
-        
+        $allTeachers = User::getTeachersVal();
 
-        // Cuantos dias hay en un margen de fechas sin feriados 
+        //Cuantos dias hay en un margen de fechas sin feriados 
         $diasHabiles =  CalendarService::daysWeek($request->startDate, $request->numClass, $request->weekDays);
-  
        
-        $date = Carbon::parse($diasHabiles['lastDate']);
-        return $date->format('l');
-        $salonesdis[]=[];
+        $teachersAvailable = CalendarService::searchAvailability($allTeachers, $allTeachers->email_ipt, $diasHabiles, $request->startTime, $request->endTime);
 
-        if ($allClassRoomBy==null) {
+        $classRoomAvailable = CalendarService::searchAvailability($classRoom, $classRoom->id_calendar, $diasHabiles, $request->startTime, $request->endTime);
+
+
+        //Filtrar Disponibilidad de (Teacher y classroom )
+        $roomsAvailable[]=[];
+        if ($classRoom==null) {
             return "No hay salas Creadas";
         } else {
             
             $k=0;
-            for ($i=0; $i < sizeof($allClassRoomBy); $i++) { 
+            for ($i=0; $i < sizeof($classRoom); $i++) { 
                 $aux=false;
                 for ($j=0; $j < sizeof($diasHabiles['dates']); $j++) { 
-                    $newrequest=['idCalendar'=>$allClassRoomBy[$i]->id_calendar, 'startTime'=>$diasHabiles['dates'][$j].$request->statTime,'endTime'=>$diasHabiles['dates'][$j].$request->endTime];
+                    $newrequest=['idCalendar'=>$classRoom[$i]->id_calendar, 'startTime'=>$diasHabiles['dates'][$j].$request->startTime,'endTime'=>$diasHabiles['dates'][$j].$request->endTime];
                     $events = CalendarService::getEventByDay(new Request($newrequest));
                    if(sizeof($events)==0){
                         $aux=true;
@@ -236,12 +238,12 @@ class CalendarService {
                     }
                 }
                 if($aux){
-                    $salonesdis[$k]=$allClassRoomBy[$i]->name;
+                    $roomsAvailable[$k]=$classRoom[$i]->name;
                     $k++;
                 }
             }
         }
-        return $salonesdis;
+        return $roomsAvailable;
         
         $event = new Event;
         // for ($i=0; $i < sizeof($request->attendees) ; $i++) {
@@ -390,18 +392,43 @@ class CalendarService {
             $time = time();
             $curr = $dt->format('D');
             if(in_array($curr, $weekDays) && sizeof($daySelect)<$numClass) {
-                
                 if (!in_array($dt->format('Y-m-d'), $holidays)) {
                     $daySelect[$i]=($dt)->format('Y-m-d');
                     $i++;
                 }
-
             }
         }
-
-
-         return $dataCalendar=['dates'=>$daySelect, 'lastDate'=>end($daySelect)];
+        return $dataCalendar=['dates'=>$daySelect, 'lastDate'=>end($daySelect)];
     }
+
+    public static function searchAvailability($dataSearch, $idCalendar, $availableDays, $startTime, $endTime){
+        $available[]=[];
+        if ($dataSearch==null) {
+            return "No hay salas Creadas";
+        } else {
+            
+            $k=0;
+            for ($i=0; $i < sizeof($dataSearch); $i++) { 
+                $aux=false;
+                for ($j=0; $j < sizeof($availableDays['dates']); $j++) { 
+                    $newRequest=['idCalendar'=>$dataSearch[$i]->$idCalendar, 'startTime'=>$availableDays['dates'][$j].$startTime, 'endTime'=>$availableDays['dates'][$j].$endTime];
+                    $events = CalendarService::getEventByDay(new Request($newRequest));
+                   if(sizeof($events)==0){
+                        $aux=true;
+                    }else{
+                        $aux=false;
+                        break;
+                    }
+                }
+                if($aux){
+                    $available[$k]=$dataSearch[$i]->name;
+                    $k++;
+                }
+            }
+        }
+        return $available;
+    }
+
 
     public static function numberWeeks($startDate, $endDate){
         $firstWeek=(int) date('W',strtotime($startDate));
