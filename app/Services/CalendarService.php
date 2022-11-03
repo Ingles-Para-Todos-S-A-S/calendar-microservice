@@ -205,21 +205,43 @@ class CalendarService {
     public static function addEventPrueba($request){
 
         //Traer todos los salones de acuerdo a la modalidad y si tienen correo o idCalendar
-        $allClassRoomBy = CourseClassroom::ClassRoomByModId($request->course_modality);
+         $allClassRoomBy = CourseClassroom::ClassRoomByModId($request->course_modality);
 
+        //Traer todos los teacher si tienen correo o idCalendar
         
+
         // Cuantos dias hay en un margen de fechas sin feriados 
-        return CalendarService::daysWeek($request->startDate, $request->numClass, $request->weekDays);
+        $diasHabiles =  CalendarService::daysWeek($request->startDate, $request->numClass, $request->weekDays);
+  
+       
+        $date = Carbon::parse($diasHabiles['lastDate']);
+        return $date->format('l');
+        $salonesdis[]=[];
 
-
-        //validacion si hay salones
         if ($allClassRoomBy==null) {
             return "No hay salas Creadas";
         } else {
+            
+            $k=0;
             for ($i=0; $i < sizeof($allClassRoomBy); $i++) { 
-                return ("sala[$i]");
+                $aux=false;
+                for ($j=0; $j < sizeof($diasHabiles['dates']); $j++) { 
+                    $newrequest=['idCalendar'=>$allClassRoomBy[$i]->id_calendar, 'startTime'=>$diasHabiles['dates'][$j].$request->statTime,'endTime'=>$diasHabiles['dates'][$j].$request->endTime];
+                    $events = CalendarService::getEventByDay(new Request($newrequest));
+                   if(sizeof($events)==0){
+                        $aux=true;
+                    }else{
+                        $aux=false;
+                        break;
+                    }
+                }
+                if($aux){
+                    $salonesdis[$k]=$allClassRoomBy[$i]->name;
+                    $k++;
+                }
             }
         }
+        return $salonesdis;
         
         $event = new Event;
         // for ($i=0; $i < sizeof($request->attendees) ; $i++) {
@@ -361,6 +383,8 @@ class CalendarService {
         $daySelect[]=[];
 
         $i=0;
+
+        $dataCalendar;
         
         foreach($period as $dt) {
             $time = time();
@@ -371,11 +395,12 @@ class CalendarService {
                     $daySelect[$i]=($dt)->format('Y-m-d');
                     $i++;
                 }
+
             }
         }
 
 
-        return $daySelect;
+         return $dataCalendar=['dates'=>$daySelect, 'lastDate'=>end($daySelect)];
     }
 
     public static function numberWeeks($startDate, $endDate){
