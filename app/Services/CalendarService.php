@@ -211,11 +211,12 @@ class CalendarService {
         $allTeachers = User::getTeachersVal();
 
         //Cuantos dias hay en un margen de fechas sin feriados 
-        $diasHabiles =  CalendarService::daysWeek($request->startDate, $request->numClass, $request->weekDays);
+       return $diasHabiles =  CalendarService::daysWeek($request->startDate, $request->numClass, $request->weekDays);
        
         $teachersAvailable = CalendarService::searchAvailability($allTeachers, $allTeachers->email_ipt, $diasHabiles, $request->startTime, $request->endTime);
 
-        $classRoomAvailable = CalendarService::searchAvailability($classRoom, $classRoom->id_calendar, $diasHabiles, $request->startTime, $request->endTime);
+       return $classRoomAvailable = CalendarService::searchAvailability($classRoom, "id_calendar", $diasHabiles, $request->startTime, $request->endTime);
+    //    $dataSearch, $idCalendar, $availableDays, $startTime, $endTime
 
 
         //Filtrar Disponibilidad de (Teacher y classroom )
@@ -402,6 +403,7 @@ class CalendarService {
     }
 
     public static function searchAvailability($dataSearch, $idCalendar, $availableDays, $startTime, $endTime){
+        return $idCalendar;
         $available[]=[];
         if ($dataSearch==null) {
             return "No hay salas Creadas";
