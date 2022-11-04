@@ -89,7 +89,6 @@ class CalendarService {
 
     }
 
-
     public static function addEventByDayTime(Request $request){
 
         $event = new Event;
@@ -202,7 +201,6 @@ class CalendarService {
         $event->save();
     }
 
-
     public static function createQueryEvent($request){
        
         $yearConsult = Carbon::parse($request->startDate)->format('Y');
@@ -213,13 +211,28 @@ class CalendarService {
 
         $allTeachers = User::getTeachersVal();
 
-        return $availableDays =  CalendarService::daysWeek($request->startDate, $request->numClass, $request->weekDays, $holidaysFull);
+        $availableDays =  CalendarService::daysWeek($request->startDate, $request->numClass, $request->weekDays, $holidaysFull);
+
+        $newAvailableDays = $availableDays['dates'];
+
+            foreach ($newAvailableDays as &$day) {
+                $day = Carbon::parse($day);
+                $day1 = $day->format('l');
+                $day2 = $day->format('j');
+                $moth = $day->format('F');
+                $year = $day->format('Y');
+                $day = $day1.', '.$day2.' '.$moth.' '.$year;
+            }
+            unset($day);
+            $newAvailableDays;
 
         $numberWeeks=  CalendarService::numberWeeks($request->startDate, ($availableDays['lastDate']));
 
         $teachersAvailable = CalendarService::searchAvailability($allTeachers, 'email_ipt', $availableDays, $request->startTime, $request->endTime);
 
         $classRoomAvailable = CalendarService::searchAvailability($classRoom, "id_calendar", $availableDays, $request->startTime, $request->endTime);
+
+        return $result = ['Teachers'=> $teachersAvailable, 'ClassRoom'=>$classRoomAvailable, 'schoolDays'=>$newAvailableDays, 'weeksClass'=>$numberWeeks, 'completionClass'=>$availableDays['lastDate']];
     }
 
     public static function addEventPrueba($request){
@@ -240,14 +253,11 @@ class CalendarService {
         $event->save();
     }
 
-
-
     public static function deleteEventByCode($idEvent){
         $event = Event::find($idEvent);
 
         $event->delete();
     }
-
 
     public static function updateEvent(){
         $firstEvent = $events->first();
@@ -356,15 +366,10 @@ class CalendarService {
     public static function daysWeek($startDate, $numClass, $weekDays, $dataHolidays){
 
         $start = new DateTime($startDate);
-
         $period = new DatePeriod($start, new DateInterval('P1D'), 365);
-
         $holidays = $dataHolidays;
-
         $daySelect[]=[];
-
         $i=0;
-
         $dataCalendar;
 
         foreach($period as $dt) {
@@ -381,7 +386,6 @@ class CalendarService {
     }
 
     public static function searchAvailability($dataSearch, $idCalendar, $availableDays, $startTime, $endTime){
-        // return sizeof($availableDays['dates']);
         $available[]=[];
         if ($dataSearch==null) {
             return "No hay salas Creadas";
