@@ -12,6 +12,7 @@ use Google_Service_Calendar_Event;
 use DateTime;
 use DatePeriod;
 use DateInterval;
+use App\Services\Colombia;
 use Date;
 use App\Models\CourseClassroom;
 
@@ -203,6 +204,21 @@ class CalendarService {
 
 
     public static function addEventPrueba($request){
+        $yearConsult = Carbon::parse($request->startDate)->format('Y');
+
+         $holidaysFull =  Colombia::holidays()->year($yearConsult)->get();
+
+         return $holidaysByYear = $holidaysFull;
+
+        //  $day = Carbon::parse($request->weekDays);
+        //  $day->format('D');
+
+        // $array = $request->weekDays;
+        // foreach ($array as  &$day) {
+        //     $day = Carbon::parse($day)->format('D');
+        // };
+        // unset($day);
+        // return $array;
 
         //Traer todos los salones de acuerdo a la modalidad y si tienen correo o idCalendar
         $classRoom = CourseClassroom::ClassRoomByModId($request->course_modality);
@@ -211,14 +227,13 @@ class CalendarService {
         $allTeachers = User::getTeachersVal();
 
         //Cuantos dias hay en un margen de fechas sin feriados
-       return $diasHabiles =  CalendarService::daysWeek($request->startDate, $request->numClass, $request->weekDays);
+        $availableDays =  CalendarService::daysWeek($request->startDate, $request->numClass, $request->weekDays);
 
-       
+        $teachersAvailable = CalendarService::searchAvailability($allTeachers, 'email_ipt', $availableDays, $request->startTime, $request->endTime);
 
-        $teachersAvailable = CalendarService::searchAvailability($allTeachers, $allTeachers->email_ipt, $diasHabiles, $request->startTime, $request->endTime);
+        $classRoomAvailable = CalendarService::searchAvailability($classRoom, "id_calendar", $availableDays, $request->startTime, $request->endTime);
 
-        $classRoomAvailable = CalendarService::searchAvailability($classRoom, "id_calendar", $diasHabiles, $request->startTime, $request->endTime);
-    //    $dataSearch, $idCalendar, $availableDays, $startTime, $endTime
+        // ($dataSearch, $idCalendar, $availableDays, $startTime, $endTime){
 
 
         //Filtrar Disponibilidad de (Teacher y classroom )
@@ -230,8 +245,8 @@ class CalendarService {
             $k=0;
             for ($i=0; $i < sizeof($classRoom); $i++) {
                 $aux=false;
-                for ($j=0; $j < sizeof($diasHabiles['dates']); $j++) {
-                    $newrequest=['idCalendar'=>$classRoom[$i]->id_calendar, 'startTime'=>$diasHabiles['dates'][$j].$request->startTime,'endTime'=>$diasHabiles['dates'][$j].$request->endTime];
+                for ($j=0; $j < sizeof($availableDays['dates']); $j++) {
+                    $newrequest=['idCalendar'=>$classRoom[$i]->id_calendar, 'startTime'=>$availableDays['dates'][$j].$request->startTime,'endTime'=>$availableDays['dates'][$j].$request->endTime];
                     $events = CalendarService::getEventByDay(new Request($newrequest));
                    if(sizeof($events)==0){
                         $aux=true;
@@ -393,7 +408,7 @@ class CalendarService {
 
         foreach($period as $dt) {
             $time = time();
-            $curr = $dt->format('D');
+            $curr = $dt->format('l');
             if(in_array($curr, $weekDays) && sizeof($daySelect)<$numClass) {
                 if (!in_array($dt->format('Y-m-d'), $holidays)) {
                     $daySelect[$i]=($dt)->format('Y-m-d');
@@ -405,31 +420,30 @@ class CalendarService {
     }
 
     public static function searchAvailability($dataSearch, $idCalendar, $availableDays, $startTime, $endTime){
-        return $idCalendar;
+        // return sizeof($availableDays['dates']);
         $available[]=[];
         if ($dataSearch==null) {
             return "No hay salas Creadas";
-        } else {
-
+            } else {
             $k=0;
-            for ($i=0; $i < sizeof($dataSearch); $i++) {
-                $aux=false;
-                for ($j=0; $j < sizeof($availableDays['dates']); $j++) {
-                    $newRequest=['idCalendar'=>$dataSearch[$i]->$idCalendar, 'startTime'=>$availableDays['dates'][$j].$startTime, 'endTime'=>$availableDays['dates'][$j].$endTime];
-                    $events = CalendarService::getEventByDay(new Request($newRequest));
-                   if(sizeof($events)==0){
-                        $aux=true;
-                    }else{
-                        $aux=false;
-                        break;
+                for ($i=0; $i < sizeof($dataSearch); $i++) {
+                    $aux=false;
+                    for ($j=0; $j < sizeof($availableDays['dates']); $j++) {
+                        $newRequest=['idCalendar'=>$dataSearch[$i]->$idCalendar, 'startTime'=>$availableDays['dates'][$j].$startTime, 'endTime'=>$availableDays['dates'][$j].$endTime];
+                        $events = CalendarService::getEventByDay(new Request($newRequest));
+                       if(sizeof($events)==0){
+                            $aux=true;
+                        }else{
+                            $aux=false;
+                            break;
+                        }
+                    }
+                    if($aux){
+                        $available[$k]=['code'=>$dataSearch[$i]->code, 'name'=>$dataSearch[$i]->name];
+                        $k++;
                     }
                 }
-                if($aux){
-                    $available[$k]=$dataSearch[$i]->name;
-                    $k++;
-                }
             }
-        }
         return $available;
     }
 
