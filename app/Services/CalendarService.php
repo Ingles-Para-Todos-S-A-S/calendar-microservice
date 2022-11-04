@@ -210,12 +210,14 @@ class CalendarService {
         //Traer todos los teacher si tienen correo o idCalendar
         $allTeachers = User::getTeachersVal();
 
-        //Cuantos dias hay en un margen de fechas sin feriados 
+        //Cuantos dias hay en un margen de fechas sin feriados
        return $diasHabiles =  CalendarService::daysWeek($request->startDate, $request->numClass, $request->weekDays);
+
        
+
         $teachersAvailable = CalendarService::searchAvailability($allTeachers, $allTeachers->email_ipt, $diasHabiles, $request->startTime, $request->endTime);
 
-       return $classRoomAvailable = CalendarService::searchAvailability($classRoom, "id_calendar", $diasHabiles, $request->startTime, $request->endTime);
+        $classRoomAvailable = CalendarService::searchAvailability($classRoom, "id_calendar", $diasHabiles, $request->startTime, $request->endTime);
     //    $dataSearch, $idCalendar, $availableDays, $startTime, $endTime
 
 
@@ -224,11 +226,11 @@ class CalendarService {
         if ($classRoom==null) {
             return "No hay salas Creadas";
         } else {
-            
+
             $k=0;
-            for ($i=0; $i < sizeof($classRoom); $i++) { 
+            for ($i=0; $i < sizeof($classRoom); $i++) {
                 $aux=false;
-                for ($j=0; $j < sizeof($diasHabiles['dates']); $j++) { 
+                for ($j=0; $j < sizeof($diasHabiles['dates']); $j++) {
                     $newrequest=['idCalendar'=>$classRoom[$i]->id_calendar, 'startTime'=>$diasHabiles['dates'][$j].$request->startTime,'endTime'=>$diasHabiles['dates'][$j].$request->endTime];
                     $events = CalendarService::getEventByDay(new Request($newrequest));
                    if(sizeof($events)==0){
@@ -245,7 +247,7 @@ class CalendarService {
             }
         }
         return $roomsAvailable;
-        
+
         $event = new Event;
         // for ($i=0; $i < sizeof($request->attendees) ; $i++) {
             //     $event->addAttendee($request->attendees[$i]);
@@ -261,7 +263,7 @@ class CalendarService {
         $event->googleEvent->setSummary($request->title);
         $event->startDateTime = new Carbon($request->start);
         $event->save();
-        
+
     }
 
     public static function deleteEventByCode($idEvent){
@@ -376,7 +378,7 @@ class CalendarService {
     }
 
     public static function daysWeek($startDate, $numClass, $weekDays){
-       
+
         $start = new DateTime($startDate);
 
         $period = new DatePeriod($start, new DateInterval('P1D'), 365);
@@ -388,7 +390,7 @@ class CalendarService {
         $i=0;
 
         $dataCalendar;
-        
+
         foreach($period as $dt) {
             $time = time();
             $curr = $dt->format('D');
@@ -408,11 +410,11 @@ class CalendarService {
         if ($dataSearch==null) {
             return "No hay salas Creadas";
         } else {
-            
+
             $k=0;
-            for ($i=0; $i < sizeof($dataSearch); $i++) { 
+            for ($i=0; $i < sizeof($dataSearch); $i++) {
                 $aux=false;
-                for ($j=0; $j < sizeof($availableDays['dates']); $j++) { 
+                for ($j=0; $j < sizeof($availableDays['dates']); $j++) {
                     $newRequest=['idCalendar'=>$dataSearch[$i]->$idCalendar, 'startTime'=>$availableDays['dates'][$j].$startTime, 'endTime'=>$availableDays['dates'][$j].$endTime];
                     $events = CalendarService::getEventByDay(new Request($newRequest));
                    if(sizeof($events)==0){
@@ -441,7 +443,7 @@ class CalendarService {
             $firstWeek++;
         }
         return json_encode($nSena);
-       
+
     }
 
 
