@@ -221,7 +221,7 @@ class CalendarService {
                 $day2 = $day->format('j');
                 $moth = $day->format('F');
                 $year = $day->format('Y');
-                $day = $day1.', '.$day2.' '.$moth.' '.$year;
+                $day = ['shortDate'=>$day->format('Y-m-d'), 'longDate'=>$day1.', '.$day2.' '.$moth.' '.$year];
             }
             unset($day);
             $newAvailableDays;
@@ -404,14 +404,14 @@ class CalendarService {
                         }
                     }
                     if($aux){
-                        $available[$k]=['code'=>$dataSearch[$i]->code, 'name'=>$dataSearch[$i]->name];
+                        $available[$k]=['code'=>$dataSearch[$i]->code, 'name'=>$dataSearch[$i]->name, 'idCalendar'=>$dataSearch[$i]->$idCalendar];
+                        // $available[$k]=$dataSearch[$i];
                         $k++;
                     }
                 }
             }
         return $available;
     }
-
 
     public static function numberWeeks($startDate, $endDate){
         $firstWeek=(int) date('W',strtotime($startDate));
