@@ -34,6 +34,14 @@ class CalendarController extends Controller {
         }
     }
 
+    function getCreateQueryEvent(Request $request) {
+        if(isset($request->params)) {
+            return CalendarService::createQueryEvent(new Request($request->params));
+        }else {
+            return ApiResponse::response(3, null);
+        }
+    }
+
     function updateEventCalendarByIdEvent($idEvent) {
         return CalendarService::updateEventByCode($idEvent);
     }
