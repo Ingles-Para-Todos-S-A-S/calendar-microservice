@@ -156,7 +156,6 @@ class CalendarService {
         $event->googleEvent->hangoutLink = $request->hangoutLink;
         $event->googleEvent->htmlLink = $request->htmlLink;
         // $event->googleEvent->iCalUID = $request->iCalUID;
-        // $event->googleEvent->id = $request->id;
         $event->googleEvent->location = $request->locationEvent;
         $event->googleEvent->locked = $request->locked;
         // $event->organizer->id = $request->organizerId;
@@ -169,7 +168,6 @@ class CalendarService {
         // $event->googleEvent->recurringEventId = $request->recurringEventId;
         // $event->googleEvent->reminders->useDefault = $request->remindersUseDefault;
         $event->dateTime = $request->start;
-        // $event->googleEvent->start->timneZome = "America/Bogota";
         // $event->googleEvent->status = $request->status;
         $event->googleEvent->summary = $request->title;
         // $event->googleEvent->transparency = $request->transparency;
