@@ -158,7 +158,6 @@ class CalendarService {
         // $event->googleEvent->iCalUID = $request->iCalUID;
         $event->googleEvent->location = $request->locationEvent;
         $event->googleEvent->locked = $request->locked;
-        // $event->organizer->id = $request->organizerId;
         // $event->organizer->self = $request->organizerSelf;
         // $event->organizer->displayName = $request->organizerDisplayName;
         // $event->organizer->email = $request->organizerEmail;
