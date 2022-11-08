@@ -19,7 +19,7 @@ class Event
     public $googleEvent;
 
     /** @var string */
-     public $calendarId;
+    protected $calendarId;
 
     /** @var array */
     protected $attendees;
@@ -52,9 +52,7 @@ class Event
      *
      * @return mixed
      */
-
-
-     public static function create(array $properties, string $calendarId, $optParams = [])
+    public static function create(array $properties, string $calendarId = null, $optParams = [])
     {
         $event = new static;
 
@@ -76,40 +74,7 @@ class Event
         return $event->quickSave($text);
     }
 
-    public static function get2(string $calendarId): Collection
-    {
-        $googleCalendar = GoogleCalendarFactory::createForCalendarId($calendarId);
-
-        $googleEvents = $googleCalendar->listEvents(null, null, []);
-
-        $googleEventsList = $googleEvents->getItems();
-
-        while ($googleEvents->getNextPageToken()) {
-            $queryParameters['pageToken'] = $googleEvents->getNextPageToken();
-
-            $googleEvents = $googleCalendar->listEvents(null, null, []);
-
-            $googleEventsList = array_merge($googleEventsList, $googleEvents->getItems());
-        }
-
-        $useUserOrder = isset($queryParameters['orderBy']);
-
-        return collect($googleEventsList)
-            ->map(function (Google_Service_Calendar_Event $event) use ($calendarId) {
-                return static::createFromGoogleCalendarEvent($event, $calendarId);
-            })
-            ->sortBy(function (self $event, $index) use ($useUserOrder) {
-                if ($useUserOrder) {
-                    return $index;
-                }
-
-                return $event->sortDate;
-            })
-            ->values();
-    }
-
-
-    public static function get(CarbonInterface $startDateTime = null, CarbonInterface $endDateTime = null, array $queryParameters = [], string $calendarId): Collection
+    public static function get(CarbonInterface $startDateTime = null, CarbonInterface $endDateTime = null, array $queryParameters = [], string $calendarId = null): Collection
     {
         $googleCalendar = static::getGoogleCalendar($calendarId);
 
@@ -141,7 +106,7 @@ class Event
             ->values();
     }
 
-    public static function find($eventId, string $calendarId): self
+    public static function find($eventId, string $calendarId = null): self
     {
         $googleCalendar = static::getGoogleCalendar($calendarId);
 
@@ -270,42 +235,14 @@ class Event
         return $this->calendarId;
     }
 
-    protected static function getGoogleCalendar(string $calendarId): GoogleCalendar
+    protected static function getGoogleCalendar(string $calendarId = null): GoogleCalendar
     {
-
-        return GoogleCalendarFactory::createForCalendarId($calendarId);
-    }
-
-    protected static function getGoogleCalendarId(string $calendarId): GoogleCalendar
-    {
+        $calendarId = $calendarId ?? config('google-calendar.calendar_id');
 
         return GoogleCalendarFactory::createForCalendarId($calendarId);
     }
 
     protected function setDateProperty(string $name, CarbonInterface $date)
-    {
-        $eventDateTime = new Google_Service_Calendar_EventDateTime;
-
-        if (in_array($name, ['start.date', 'end.date'])) {
-            $eventDateTime->setDate($date->format('Y-m-d'));
-            $eventDateTime->setTimezone((string) $date->getTimezone());
-        }
-
-        if (in_array($name, ['start.dateTime', 'end.dateTime'])) {
-            $eventDateTime->setDateTime($date->format(DateTime::RFC3339));
-            $eventDateTime->setTimezone((string) $date->getTimezone());
-        }
-
-        if (Str::startsWith($name, 'start')) {
-            $this->googleEvent->setStart($eventDateTime);
-        }
-
-        if (Str::startsWith($name, 'end')) {
-            $this->googleEvent->setEnd($eventDateTime);
-        }
-    }
-
-    public function setDatePro(string $name, CarbonInterface $date)
     {
         $eventDateTime = new Google_Service_Calendar_EventDateTime;
 

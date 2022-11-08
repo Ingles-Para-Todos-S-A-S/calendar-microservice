@@ -52,8 +52,8 @@ class Event
      *
      * @return mixed
      */
-    
-    
+
+
      public static function create(array $properties, string $calendarId, $optParams = [])
     {
         $event = new static;

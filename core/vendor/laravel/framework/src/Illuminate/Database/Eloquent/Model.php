@@ -175,13 +175,6 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     protected static $lazyLoadingViolationCallback;
 
     /**
-     * Indicates if an exception should be thrown instead of silently discarding non-fillable attributes.
-     *
-     * @var bool
-     */
-    protected static $modelsShouldPreventSilentlyDiscardingAttributes = false;
-
-    /**
      * Indicates if broadcasting is currently enabled.
      *
      * @var bool
@@ -400,17 +393,6 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     }
 
     /**
-     * Prevent non-fillable attributes from being silently discarded.
-     *
-     * @param  bool  $value
-     * @return void
-     */
-    public static function preventSilentlyDiscardingAttributes($value = true)
-    {
-        static::$modelsShouldPreventSilentlyDiscardingAttributes = $value;
-    }
-
-    /**
      * Execute a callback without broadcasting any model events for all model types.
      *
      * @param  callable  $callback
@@ -441,29 +423,18 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     {
         $totallyGuarded = $this->totallyGuarded();
 
-        $fillable = $this->fillableFromArray($attributes);
-
-        foreach ($fillable as $key => $value) {
+        foreach ($this->fillableFromArray($attributes) as $key => $value) {
             // The developers may choose to place some attributes in the "fillable" array
             // which means only those attributes may be set through mass assignment to
             // the model, and all others will just get ignored for security reasons.
             if ($this->isFillable($key)) {
                 $this->setAttribute($key, $value);
-            } elseif ($totallyGuarded || static::preventsSilentlyDiscardingAttributes()) {
+            } elseif ($totallyGuarded) {
                 throw new MassAssignmentException(sprintf(
                     'Add [%s] to fillable property to allow mass assignment on [%s].',
                     $key, get_class($this)
                 ));
             }
-        }
-
-        if (count($attributes) !== count($fillable) &&
-            static::preventsSilentlyDiscardingAttributes()) {
-            throw new MassAssignmentException(sprintf(
-                'Add fillable property [%s] to allow mass assignment on [%s].',
-                implode(', ', array_diff(array_keys($attributes), array_keys($fillable))),
-                get_class($this)
-            ));
         }
 
         return $this;
@@ -477,7 +448,9 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      */
     public function forceFill(array $attributes)
     {
-        return static::unguarded(fn () => $this->fill($attributes));
+        return static::unguarded(function () use ($attributes) {
+            return $this->fill($attributes);
+        });
     }
 
     /**
@@ -488,7 +461,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      */
     public function qualifyColumn($column)
     {
-        if (str_contains($column, '.')) {
+        if (Str::contains($column, '.')) {
             return $column;
         }
 
@@ -520,7 +493,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
         // This method just provides a convenient way for us to generate fresh model
         // instances of this current model. It is particularly useful during the
         // hydration of new objects via the Eloquent query builder instances.
-        $model = new static;
+        $model = new static((array) $attributes);
 
         $model->exists = $exists;
 
@@ -531,8 +504,6 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
         $model->setTable($this->getTable());
 
         $model->mergeCasts($this->casts);
-
-        $model->fill((array) $attributes);
 
         return $model;
     }
@@ -578,7 +549,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     /**
      * Begin querying the model on the write connection.
      *
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Query\Builder
      */
     public static function onWriteConnection()
     {
@@ -588,8 +559,8 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     /**
      * Get all of the models from the database.
      *
-     * @param  array|string  $columns
-     * @return \Illuminate\Database\Eloquent\Collection<int, static>
+     * @param  array|mixed  $columns
+     * @return \Illuminate\Database\Eloquent\Collection|static[]
      */
     public static function all($columns = ['*'])
     {
@@ -949,36 +920,6 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     }
 
     /**
-     * Increment a column's value by a given amount without raising any events.
-     *
-     * @param  string  $column
-     * @param  float|int  $amount
-     * @param  array  $extra
-     * @return int
-     */
-    protected function incrementQuietly($column, $amount = 1, array $extra = [])
-    {
-        return static::withoutEvents(function () use ($column, $amount, $extra) {
-            return $this->incrementOrDecrement($column, $amount, $extra, 'increment');
-        });
-    }
-
-    /**
-     * Decrement a column's value by a given amount without raising any events.
-     *
-     * @param  string  $column
-     * @param  float|int  $amount
-     * @param  array  $extra
-     * @return int
-     */
-    protected function decrementQuietly($column, $amount = 1, array $extra = [])
-    {
-        return static::withoutEvents(function () use ($column, $amount, $extra) {
-            return $this->incrementOrDecrement($column, $amount, $extra, 'decrement');
-        });
-    }
-
-    /**
      * Save the model and all of its relationships.
      *
      * @return bool
@@ -1014,7 +955,9 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      */
     public function saveQuietly(array $options = [])
     {
-        return static::withoutEvents(fn () => $this->save($options));
+        return static::withoutEvents(function () use ($options) {
+            return $this->save($options);
+        });
     }
 
     /**
@@ -1327,16 +1270,6 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     }
 
     /**
-     * Delete the model from the database without raising any events.
-     *
-     * @return bool
-     */
-    public function deleteQuietly()
-    {
-        return static::withoutEvents(fn () => $this->delete());
-    }
-
-    /**
      * Delete the model from the database within a transaction.
      *
      * @return bool|null
@@ -1564,7 +1497,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     {
         $json = json_encode($this->jsonSerialize(), $options);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (JSON_ERROR_NONE !== json_last_error()) {
             throw JsonEncodingException::forModel($this, json_last_error_msg());
         }
 
@@ -1574,9 +1507,10 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     /**
      * Convert the object into something JSON serializable.
      *
-     * @return mixed
+     * @return array
      */
-    public function jsonSerialize(): mixed
+    #[\ReturnTypeWillChange]
+    public function jsonSerialize()
     {
         return $this->toArray();
     }
@@ -1594,7 +1528,6 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
         }
 
         return $this->setKeysForSelectQuery($this->newQueryWithoutScopes())
-                        ->useWritePdo()
                         ->with(is_string($with) ? func_get_args() : $with)
                         ->first();
     }
@@ -1611,10 +1544,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
         }
 
         $this->setRawAttributes(
-            $this->setKeysForSelectQuery($this->newQueryWithoutScopes())
-                ->useWritePdo()
-                ->firstOrFail()
-                ->attributes
+            $this->setKeysForSelectQuery($this->newQueryWithoutScopes())->firstOrFail()->attributes
         );
 
         $this->load(collect($this->relations)->reject(function ($relation) {
@@ -1635,11 +1565,11 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      */
     public function replicate(array $except = null)
     {
-        $defaults = array_values(array_filter([
+        $defaults = [
             $this->getKeyName(),
             $this->getCreatedAtColumn(),
             $this->getUpdatedAtColumn(),
-        ]));
+        ];
 
         $attributes = Arr::except(
             $this->getAttributes(), $except ? array_unique(array_merge($except, $defaults)) : $defaults
@@ -1652,17 +1582,6 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
 
             $instance->fireModelEvent('replicating', false);
         });
-    }
-
-    /**
-     * Clone the model into a new, non-existing instance without raising any events.
-     *
-     * @param  array|null  $except
-     * @return static
-     */
-    public function replicateQuietly(array $except = null)
-    {
-        return static::withoutEvents(fn () => $this->replicate($except));
     }
 
     /**
@@ -1910,7 +1829,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
             }
 
             if ($relation instanceof QueueableEntity) {
-                foreach ($relation->getQueueableRelations() as $entityValue) {
+                foreach ($relation->getQueueableRelations() as $entityKey => $entityValue) {
                     $relations[] = $key.'.'.$entityValue;
                 }
             }
@@ -2009,7 +1928,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      */
     protected function resolveChildRouteBindingQuery($childType, $value, $field)
     {
-        $relationship = $this->{$this->childRouteBindingRelationshipName($childType)}();
+        $relationship = $this->{Str::plural(Str::camel($childType))}();
 
         $field = $field ?: $relationship->getRelated()->getRouteKeyName();
 
@@ -2024,20 +1943,9 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     }
 
     /**
-     * Retrieve the child route model binding relationship name for the given child type.
-     *
-     * @param  string  $childType
-     * @return string
-     */
-    protected function childRouteBindingRelationshipName($childType)
-    {
-        return Str::plural(Str::camel($childType));
-    }
-
-    /**
      * Retrieve the model for a bound value.
      *
-     * @param  \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Relations\Relation  $query
+     * @param  \Illuminate\Database\Eloquent\Model|Illuminate\Database\Eloquent\Relations\Relation  $query
      * @param  mixed  $value
      * @param  string|null  $field
      * @return \Illuminate\Database\Eloquent\Relations\Relation
@@ -2091,16 +1999,6 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     }
 
     /**
-     * Determine if discarding guarded attribute fills is disabled.
-     *
-     * @return bool
-     */
-    public static function preventsSilentlyDiscardingAttributes()
-    {
-        return static::$modelsShouldPreventSilentlyDiscardingAttributes;
-    }
-
-    /**
      * Get the broadcast channel route definition that is associated with the given entity.
      *
      * @return string
@@ -2149,7 +2047,8 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      * @param  mixed  $offset
      * @return bool
      */
-    public function offsetExists($offset): bool
+    #[\ReturnTypeWillChange]
+    public function offsetExists($offset)
     {
         return ! is_null($this->getAttribute($offset));
     }
@@ -2160,7 +2059,8 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      * @param  mixed  $offset
      * @return mixed
      */
-    public function offsetGet($offset): mixed
+    #[\ReturnTypeWillChange]
+    public function offsetGet($offset)
     {
         return $this->getAttribute($offset);
     }
@@ -2172,7 +2072,8 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      * @param  mixed  $value
      * @return void
      */
-    public function offsetSet($offset, $value): void
+    #[\ReturnTypeWillChange]
+    public function offsetSet($offset, $value)
     {
         $this->setAttribute($offset, $value);
     }
@@ -2183,7 +2084,8 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      * @param  mixed  $offset
      * @return void
      */
-    public function offsetUnset($offset): void
+    #[\ReturnTypeWillChange]
+    public function offsetUnset($offset)
     {
         unset($this->attributes[$offset], $this->relations[$offset]);
     }
