@@ -10,6 +10,7 @@ use App\Models\ApiResponse;
 class CalendarController extends Controller {
 
     function getEventCalendarByIdCalendar($idcalendar) {
+        return 'hello word';
         return CalendarService::getCalendarId($idcalendar);
     }
 
