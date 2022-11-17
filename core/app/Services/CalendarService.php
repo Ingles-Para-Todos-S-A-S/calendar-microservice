@@ -233,6 +233,7 @@ class CalendarService {
     }
 
     public static function addEventPrueba($request){
+        return $request;
         $event = new Event;
         $event->calendarId = $request->calendarId;
         for ($i=0; $i < sizeof($request->attendees) ; $i++) {
