@@ -28,6 +28,7 @@ class CalendarController extends Controller {
 
     function addEventCalendarByDayTime(Request $request) {
         if(isset($request->params)) {
+            return $request;
             // return CalendarService::addEventByDayTime(new Request($request->params));
             return CalendarService::addEventPrueba(new Request($request->params));
         }else {
