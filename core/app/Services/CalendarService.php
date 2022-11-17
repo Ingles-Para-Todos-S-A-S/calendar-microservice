@@ -234,11 +234,11 @@ class CalendarService {
 
     public static function addEventPrueba($request){
         $event = new Event;
+        $event->calendarId = $request->calendarId;
         for ($i=0; $i < sizeof($request->attendees) ; $i++) {
                 $event->addAttendee($request->attendees[$i]);
             }
         return  $event->googleEvent->getAttendees();
-        $event->calendarId = $request->calendarId;
         $event->googleEvent->setAttendeesOmitted($request->attendeesOmitted);
         $event->googleEvent->setColorId($request->color);
         $event->googleEvent->setDescription($request->descriptionEvent);
