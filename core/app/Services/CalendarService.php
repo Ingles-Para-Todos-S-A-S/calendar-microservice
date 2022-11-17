@@ -234,19 +234,19 @@ class CalendarService {
 
     public static function addEventPrueba($request){
         $event = new Event;
-        // for ($i=0; $i < sizeof($request->attendees) ; $i++) {
-            //     $event->addAttendee($request->attendees[$i]);
-            // }
-        // return  $event->googleEvent->getAttendees();
+        for ($i=0; $i < sizeof($request->attendees) ; $i++) {
+                $event->addAttendee($request->attendees[$i]);
+            }
+        return  $event->googleEvent->getAttendees();
         $event->calendarId = $request->calendarId;
         $event->googleEvent->setAttendeesOmitted($request->attendeesOmitted);
         $event->googleEvent->setColorId($request->color);
         $event->googleEvent->setDescription($request->descriptionEvent);
+        $event->startDateTime = new Carbon($request->start);
         $event->endDateTime = new Carbon($request->end);
         $event->googleEvent->setHangoutLink($request->hangoutLink);
         $event->googleEvent->setLocation($request->locationEvent);
         $event->googleEvent->setSummary($request->title);
-        $event->startDateTime = new Carbon($request->start);
         $event->save();
     }
 
